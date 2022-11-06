@@ -1,5 +1,7 @@
 from os import path
 
+from uuid import uuid4 as uuid
+
 from semithuesystem.semi_thue_system import SemiThueSystem
 from semithuesystem.rules_dictionary import RulesDictionary
 from semithuesystem.alphabet import Alphabet
@@ -18,32 +20,49 @@ class MSystem(SemiThueSystem):
 
         self._conducting = conducting_dictionary.dictionary
 
-    def to_score(self) -> str:
+    @property
+    def score(self) -> str:
         return "".join(self._interactions)
+
+    def file(self, out: str = ".") -> str:
+        file = AudioSegment.empty()
+
+        for note in self.score:
+            audio = AudioSegment.from_file(self._conducting[note])
+            file = file.append(audio, 0)
+
+        file_out_path = f"{ out }/msystem-result-{ uuid() }.mp3"  
+
+        file.export(file_out_path, "mp3")
+
+        return file_out_path
 
     def perform(self): 
         def play_note(note: str):
             if self._conducting[note]:
-                note = AudioSegment.from_file(self._conducting[note])
-                playback.play(note)
+                audio = AudioSegment.from_file(self._conducting[note])
+                playback.play(audio)
 
-        list(map(play_note, list(self.to_score())))
+        list(map(play_note, list(self.score)))
  
+if __name__ == "__main__":
+    alphabet = Alphabet({ "A", "B"})
 
-alphabet = Alphabet({ "A", "B", "C" })
+    rules = RulesDictionary(alphabet)
+    rules.register({ "of": "A", "to": "AB"})
+    rules.register({ "of": "B", "to": "A" })
 
-rules = RulesDictionary(alphabet)
-rules.register({ "of": "A", "to": "B"})
-rules.register({ "of": "B", "to": "CA"})
+    conducting = ConductingDictionary(alphabet)
+    conducting.register({ "if": "A", "play": path.join(".tmp", "F.mp3")})
+    conducting.register({ "if": "B", "play": path.join(".tmp", "G.mp3")})
 
-conducting = ConductingDictionary(alphabet)
-conducting.register({ "if": "A", "play": path.join(".tmp", "B.mp3") })
+    msystem = MSystem("A", rules, conducting)
 
-msystem = MSystem("AAA", rules, conducting)
+    print("A")
+    for _ in range(3):
+        print(msystem.interact())
 
-msystem.interact()
-msystem.interact()
-msystem.interact()
-msystem.interact()
+    # msystem.perform()
+    print(msystem.file(path.join(".tmp")))
 
-msystem.perform()
+

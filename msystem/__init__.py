@@ -1,5 +1,5 @@
-from .m_system import MSystem
+from .msystem import MSystem
 
-from .m_system import ConductingDictionary
+from .msystem import ConductingDictionary
 
 __all__ = ["MSystem", "ConductingDictionary"]

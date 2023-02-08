@@ -2,11 +2,11 @@ from os import path
 
 from uuid import uuid4 as uuid
 
-from semithuesystem.semi_thue_system import SemiThueSystem
-from semithuesystem.rules_dictionary import RulesDictionary
-from semithuesystem.alphabet import Alphabet
+from semithuesystem import SemiThueSystem
+from semithuesystem import RulesDictionary
+from semithuesystem import Alphabet
 
-from msystem.conducting_dictionary import ConductingDictionary
+from .conducting_dictionary import ConductingDictionary
 
 from pydub import AudioSegment
 from pydub import playback
@@ -18,29 +18,29 @@ class MSystem(SemiThueSystem):
         if rules_dictionary.alphabet != conducting_dictionary.alphabet:
             raise Exception("The rule dictionary alphabet and the conducting dictionary alphabet are not the same")
 
-        self._conducting = conducting_dictionary.dictionary
+        self.conducting = conducting_dictionary.dictionary
 
     @property
     def score(self) -> str:
         return "".join(self._interactions)
 
-    def file(self, out: str = ".") -> str:
+    def file(self, out: str = ".", format: str = "mp3") -> str:
         file = AudioSegment.empty()
 
         for note in self.score:
-            audio = AudioSegment.from_file(self._conducting[note])
+            audio = AudioSegment.from_file(self.conducting[note])
             file = file.append(audio, 0)
 
-        file_out_path = f"{ out }/msystem-result-{ uuid() }.mp3"  
+        file_out_path = f"{ out }/msystem-result-{ uuid() }.{ format }"  
 
-        file.export(file_out_path, "mp3")
+        file.export(file_out_path, format)
 
         return file_out_path
 
     def perform(self): 
         def play_note(note: str):
-            if self._conducting[note]:
-                audio = AudioSegment.from_file(self._conducting[note])
+            if self.conducting[note]:
+                audio = AudioSegment.from_file(self.conducting[note])
                 playback.play(audio)
 
         list(map(play_note, list(self.score)))
